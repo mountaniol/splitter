@@ -5,8 +5,9 @@ Name: 		Splitter
 
 Description:
 
-Splitter: splits a file into subfiles.
+Splitter: splits a file into subfiles / joins origin file from subfiles.
 Every subfile can have different size.
+Compatible with HJ-Split software (at least in case of splitting to subfiles of the same size).
 It supports large files as well.
 
 Usage: 
@@ -20,11 +21,11 @@ N'st (see examples below)
 Example of using:
 
 splitter -s /path/to/file.name 1024m
-Result: file /path/to/file.name will be splitted to /path/to/file.name.000 ...
-/path/to/file.name.NNN, every subfile 1024 begabytes
+Result: file /path/to/file.name will be split to /path/to/file.name.000 ...
+/path/to/file.name.NNN, every subfile 1024 megabytes
 
 splitter -s /path/to/file.name 1024m 512m 128m
-Result: file /path/to/file.name will be splitted to: 
+Result: file /path/to/file.name will be split to: 
 
 /path/to/file.name.000 size 1024 Megabytes
 /path/to/file.name.001 size 512 Megabytes
@@ -33,7 +34,7 @@ Result: file /path/to/file.name will be splitted to:
 Megabytes. 
 
 splitter -s /path/to/file.name 1024m 512m 128m -r
-Result: file /path/to/file.name will be splitted to: 
+Result: file /path/to/file.name will be split to: 
 
 /path/to/file.name.000 size 1024 Megabytes
 /path/to/file.name.001 size 512 Megabytes
