@@ -1,12 +1,11 @@
 ALL_O=$(subst .c,.o,$(shell ls *.c ))
-T=splitter.da
+T=splitter
 
 SPLIT_O=split.o
-SPLIT_T=split.da
 HTTP_O=html.o
 HTTP_T=html.da
 INCLUDE=
-CFLAGS=-g3 -Wall -D_FILE_OFFSET_BITS=64 
+CFLAGS=-g -Wall -D_FILE_OFFSET_BITS=64 
 
 all: $(SPLIT_O)
 	gcc $(CFLAGS) $(SPLIT_O) -o $(T)
