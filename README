@@ -1,0 +1,53 @@
+Author: 	Vsevolod Mountaniol
+License: 	GPL
+Name: 		Splitter
+
+
+Description:
+
+Splitter: splits a file into subfiles.
+Every subfile can have different size.
+It supports large files as well.
+
+Usage: 
+
+Split: splitter -s filename size size size ... [-r]
+Join:  splitter -j filename.000
+
+-r in split command means "repeat". It repeats the chain of sizes from 1's no
+N'st (see examples below)
+
+Example of using:
+
+splitter -s /path/to/file.name 1024m
+Result: file /path/to/file.name will be splitted to /path/to/file.name.000 ...
+/path/to/file.name.NNN, every subfile 1024 begabytes
+
+splitter -s /path/to/file.name 1024m 512m 128m
+Result: file /path/to/file.name will be splitted to: 
+
+/path/to/file.name.000 size 1024 Megabytes
+/path/to/file.name.001 size 512 Megabytes
+/path/to/file.name.002 size 128 Megabytes
+/path/to/file.name.003 ... /path/to/file.name.NNN, every file has size 128
+Megabytes. 
+
+splitter -s /path/to/file.name 1024m 512m 128m -r
+Result: file /path/to/file.name will be splitted to: 
+
+/path/to/file.name.000 size 1024 Megabytes
+/path/to/file.name.001 size 512 Megabytes
+/path/to/file.name.002 size 128 Megabytes
+
+/path/to/file.name.003 size 1024 Megabytes
+/path/to/file.name.004 size 512 Megabytes
+/path/to/file.name.005 size 128 Megabytes
+
+...
+
+/path/to/file.name.(NNN -2)  size 1024 Megabytes
+/path/to/file.name.(NNN - 1) size 512 Megabytes
+/path/to/file.name.NNN       size 128 Megabytes
+
+Feel free asking questions. Contact me through github:
+http://github.com/mountaniol
