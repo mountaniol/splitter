@@ -18,7 +18,7 @@ Join:  splitter -j filename.000
 -r in split command means "repeat". It repeats the chain of sizes from 1's no
 N'st (see examples below)
 
-Example of using:
+Example of usage:
 
 splitter -s /path/to/file.name 1024m
 Result: file /path/to/file.name will be split to /path/to/file.name.000 ...
