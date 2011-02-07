@@ -15,7 +15,11 @@
 #include <ctype.h>
 
 #include "split.h"
-#define E() do { printf("E: %s +%d\n", __FUNCTION__, __LINE__) ; } while(0)
+
+// #define E() do { printf("E: %s +%d\n", __FUNCTION__, __LINE__) ; } while(0)
+
+#define DD(x...) do {} while(0)
+#define E(x...) do {} while(0)
 
 /* Maximal buffer size */
 #define MAX_BUF_SIZE (1024 * 1024)
@@ -32,7 +36,7 @@ static int unmap_file(char * pc_map, size_t i_size)
 {
 	E();
 	return( munmap(pc_map, i_size) );
-}
+}   
 
 
 static char * map_file(int i_fd, size_t i_size)
@@ -73,7 +77,6 @@ static int open_and_map(core_t * ps_core)
 		close(ps_core->i_origin_fd);
 		return(i_rv);
 	}
-
 	return(0);
 }
 
@@ -105,7 +108,7 @@ static int reversing_unlink(char * pc_name, int i_seq)
 	while ( i_seq >=0 )
 	{
 		construct_out_name(pc_filename, pc_name, i_seq--);
-		printf("Reverse: removing file %s\n", pc_filename);
+		DD("Reverse: removing file %s\n", pc_filename);
 		unlink(pc_filename);
 	}
 	return(0);
@@ -123,12 +126,11 @@ static int reversing_unlink3(core_t * ps_core, int i_seq)
 	while ( i_seq >=0 )
 	{
 		construct_out_name(pc_filename, ps_core->pc_origin_name, i_seq--);
-		printf("Reverse: removing file %s\n", pc_filename);
+		DD("Reverse: removing file %s\n", pc_filename);
 		unlink(pc_filename);
 	}
 	return(0);
 }
-
 
 static char * allocate_buf(off64_t i_buf_size, off64_t * pi_allocated)
 {
@@ -146,229 +148,6 @@ static char * allocate_buf(off64_t i_buf_size, off64_t * pi_allocated)
 }
 
 
-#if 0
-/* i_fd: file descriptor, i_seq: sequential number of output file, i_size: size of output file, i_buf: maximal allowed size of buffer */
-static off64_t write_chunk(char * pc_in_name, int i_fd_in, int i_seq, off64_t i_size, off64_t i_buf_size)
-{
-	char ac_out_name[FILENAME_MAX];
-	char * pc_buf;
-	off64_t i_fd_out;
-	off64_t i_rv_read;
-	off64_t i_rv_write;
-	off64_t i_written = 0;
-	E();
-	pc_buf = allocate_buf(i_buf_size, &i_buf_size);
-	if ( !pc_buf )
-		return(-1);
-
-	construct_out_name(ac_out_name, pc_in_name, i_seq);
-	i_fd_out = open(ac_out_name, O_CREAT | O_WRONLY | O_EXCL | O_LARGEFILE, 0666);
-	if ( i_fd_out < 0 )
-	{
-		perror("Can't open file: ");
-		free(pc_buf);
-		return(-1);
-	}
-
-	printf("Writing: %s\n", ac_out_name);
-	do
-	{
-		i_rv_read = pread(i_fd_in, pc_buf,  MIN(i_buf_size, REMAIN(i_size, i_written) ), READ_OFFSET(i_seq, i_size, i_written));
-		if ( i_rv_read < 0 )
-		{
-			perror("Can't read file: ");
-			goto write_chunk_end;
-		}
-
-		if ( i_rv_read == 0 ) goto write_chunk_end;
-
-		i_rv_write = write(i_fd_out, pc_buf, i_rv_read);
-
-		if ( i_rv_read != i_rv_write )
-		{
-			perror("Can't write file: ");
-			goto write_chunk_end;
-		}
-		i_written += i_rv_write;
-
-	}while ( i_rv_read > 0 );
-
-	write_chunk_end:
-	close(i_fd_out);
-	free(pc_buf);
-	return(i_written);
-}
-
-
-static int split_file(char * pc_name, off64_t i_size)
-{
-	char        ac_outname[FILENAME_MAX];
-	int         i_seq = 0;
-	int         i_rv;
-	off64_t     i_offset = 0;
-	off64_t     i_written;
-	off64_t     i_remain;
-	off64_t     i_write_now;
-	int         i_fd;
-	int         i_fd_out;
-	char *      pc_map;
-	struct      stat s_st;
-	E();
-	i_fd = open(pc_name, O_RDONLY | O_LARGEFILE);
-
-	if ( i_fd < 0 )
-	{
-		perror("Can't open file: ");    
-		return(errno);
-	}
-
-	if ( fstat(i_fd, &s_st) )
-	{
-		i_rv = errno;
-		perror("Can't stat file: ");    
-		close(i_fd);
-		return(i_rv);
-	}
-
-	i_remain = s_st.st_size;
-
-	pc_map = (char *) map_file(i_fd, (int) s_st.st_size);
-
-	if ( !pc_map )
-	{
-		i_rv = errno;
-		perror("Can't mmap file: ");    
-		close(i_fd);
-		return(i_rv);
-	}
-
-	do
-	{
-		bzero(ac_outname, FILENAME_MAX);
-		construct_out_name(ac_outname, pc_name, i_seq++);
-
-
-		i_fd_out = open(ac_outname, O_CREAT | O_WRONLY | O_EXCL | O_LARGEFILE);
-		if ( i_fd_out < 0 )
-		{
-			i_rv = errno;
-			/* TODO: On error delete all created files */
-			perror("Can't open output file: "); 
-			goto an_error;
-		}
-
-		printf("Writing into file %s\n", ac_outname);
-
-		i_write_now = (i_remain < i_size) ? i_remain : i_size;
-
-		i_written = write(i_fd_out, pc_map + i_offset, i_write_now);
-
-		if ( i_written < 0 )
-		{
-			i_rv = errno;
-			perror("Can't write output file: ");    
-			goto an_error;
-		}
-
-		i_offset += i_written;
-		i_remain -= i_written;
-
-		close(i_fd_out);
-
-	} while ( i_remain > 0 );
-
-	if ( i_offset < s_st.st_size )
-	{
-		printf("Error: common output error less then source file: %lld < %lld \n",i_offset, s_st.st_size );
-		reversing_unlink(pc_name,i_seq);
-		return(-1);
-	}
-
-	/* Construct file name */
-
-
-	return(0);
-
-	an_error:
-	close(i_fd_out);
-	unmap_file(pc_map, s_st.st_size);
-	close(i_fd);
-	reversing_unlink(pc_name, i_seq);
-	return(i_rv);
-}
-#endif 
-
-#if 0
-static int split_file2(char * pc_name, off64_t i_size)
-{
-	int     i_seq = 0;
-	int     i_rv;
-
-	int     i_fd;
-	char *      pc_map;
-	struct      stat s_st;
-
-	off64_t  i_offset = 0;
-	off64_t  i_file_size = 0;
-	off64_t i_written;
-	E();
-
-	i_fd = open(pc_name, O_RDONLY | O_LARGEFILE);
-
-	if ( i_fd < 0 )
-	{
-		perror("Can't open file: ");    
-		return(errno);
-	}
-
-	if ( fstat(i_fd, &s_st) || s_st.st_size <= 0 )
-	{
-		i_rv = errno;
-		perror("Can't stat file: ");    
-		close(i_fd);
-		return(i_rv);
-	}
-
-	i_file_size = s_st.st_size;
-	printf("i_file_size: %lld \n", i_file_size);
-
-	pc_map = (char *) map_file(i_fd, (int) s_st.st_size);
-
-	if ( !pc_map )
-	{
-		i_rv = errno;
-		perror("Can't mmap file: ");    
-		close(i_fd);
-		return(i_rv);
-	}
-
-	do
-	{
-		i_written = write_chunk(pc_name, i_fd, i_seq++, i_size, (1025 * 512));
-		if ( i_written < 0 )
-		{
-			reversing_unlink(pc_name,i_seq);
-		}
-
-		i_offset += i_written;
-
-	} while ( i_written > 0 );
-
-	if ( i_offset < i_file_size )
-	{
-		printf("Error: common output less then source file : %lld < %lld \n", i_offset, i_file_size);
-		reversing_unlink(pc_name,i_seq);
-		return(-1);
-	}
-
-	/* Construct file name */
-
-	return(0);
-}
-#endif
-
-
-
 /* i_seq: asked part to count offset + size of this segment. */
 /* in_ll_offset - variable to keep offset of beginnig
    in_ll_size - variable to keep size of the segment  */
@@ -376,15 +155,8 @@ static int split_file2(char * pc_name, off64_t i_size)
 static off64_t count_begin_and_size2(core_t * ps_core, int i_seq, off64_t * in_ll_offset, off64_t * in_ll_size)
 {
 	int i;
-
 	* in_ll_offset = *in_ll_size = 0;
-
-
-	printf("count_begin_and_size2: i_seq : %i,ps_core->i_sizes_size: %i\n", i_seq, ps_core->i_sizes_size);
-
-	/* And here 2 cases again: */
-	/* 2.1 User asked '-r' mode, */
-	/* 2.2 User didn't ask '-r' mode */
+	DD("count_begin_and_size2: i_seq : %i,ps_core->i_sizes_size: %i\n", i_seq, ps_core->i_sizes_size);
 
 	if ( SIZES_RR == ps_core->c_sizes_repeat )
 	{
@@ -404,67 +176,12 @@ static off64_t count_begin_and_size2(core_t * ps_core, int i_seq, off64_t * in_l
 
 		/* Use last size for the rest */
 		if (i_seq >= ps_core->i_sizes_size)
-		{
 			* in_ll_offset += ( i_seq - i ) * (*in_ll_size);
-		}
 	}
 
-	printf("count_begin_and_size2: in_ll_size: %lld, in_ll_offset: %lld \n", *in_ll_size, *in_ll_offset);
+	DD("count_begin_and_size2: in_ll_size: %lld, in_ll_offset: %lld \n", *in_ll_size, *in_ll_offset);
 	return(0);
 }
-
-
-
-/* Count offset of size i_seq in src file */
-static off64_t count_begin_and_size(core_t * ps_core, int i_seq, off64_t * in_ll_offset, off64_t * in_ll_size)
-{
-	int i;
-	int i_index = 0; 
-	off64_t ll_offset = 0;
-	off64_t ll_current_size = 0;
-
-	E();
-	/* There is a nusty trick. 	When sizes[N] == 0  it means that every next size should be sizes[N-1] */
-	/* 							When sizes[N] == -1 it means that sizes are looped and index should jump to sizes[0] */
-
-	printf("Counting chunk: %d\n", i_seq); 
-
-	i_index = -1;
-
-	for ( i = 0 ; i < i_seq ; i++ )
-	{
-		/* If it 0 - jump to begin of the array */
-		if ( SIZES_RR == ps_core->sizes[i_index] )
-		{
-			i_index = 0;
-			ll_current_size = ps_core->sizes[i_index];
-		}
-		/* If it -1 stay where you are and always get sizes[i_index - 1] */
-		else if ( SIZES_USE_LAST == ps_core->sizes[i_index] )
-		{
-			ll_current_size = ps_core->sizes[i_index - 1];
-		}
-		else
-		{
-			/* Else just get next one  */
-			i_index++;
-		}
-
-		ll_current_size = ps_core->sizes[i_index];
-		ll_offset += ll_current_size;
-
-	}
-
-	/* That's why I need i_current_size */
-	// *in_ll_size = ll_current_size;
-	printf("size: %lld\n", ll_current_size);
-	*in_ll_size = (ll_current_size) ? ll_current_size : ps_core->sizes[0];
-	*in_ll_offset = ll_offset;
-
-	/* Mission complete. Go home. */
-	return(0);
-}
-
 
 static off64_t write_chunk3(core_t * ps_core)
 {
@@ -490,12 +207,11 @@ static off64_t write_chunk3(core_t * ps_core)
 
 	if ( ps_core->s_origin_stat.st_size <= ll_offset_begin) 
 	{	
-		printf("Remain: %lld\n", (ps_core->s_origin_stat.st_size - ll_offset_begin));
+		DD("Remain: %lld\n", (ps_core->s_origin_stat.st_size - ll_offset_begin));
 		return(0);
 	}
-
 	
-	printf("Counted: part %d, size %lld, offset %lld\n", ps_core->i_seq, ll_chunk_size, ll_offset_begin);
+	DD("Counted: part %d, size %lld, offset %lld\n", ps_core->i_seq, ll_chunk_size, ll_offset_begin);
 
 	pc_buf = allocate_buf(MIN(MAX_BUF_SIZE, ll_chunk_size), &ll_buf_size);
 	if ( !pc_buf ) return(-1);
@@ -515,14 +231,14 @@ static off64_t write_chunk3(core_t * ps_core)
 
 	do
 	{
-		printf("Going to read: %lld\n", MIN(ll_buf_size, (ps_core->s_origin_stat.st_size - ll_offset_begin)));
+		DD("Going to read: %lld\n", MIN(ll_buf_size, (ps_core->s_origin_stat.st_size - ll_offset_begin)));
 
 		ll_rv_read = pread(ps_core->i_origin_fd, pc_buf,  MIN(ll_buf_size, REMAIN(ll_buf_size, ll_rv_read)), ll_offset_begin + ll_rv_read);
 
 		if ( ll_rv_read < 1 )
 		{
 			perror("Can't read file: ");
-			printf("Read seize: %lld\n", ll_rv_read);
+			printf("Read size: %lld\n", ll_rv_read);
 			goto write_chunk_end3;
 		}
 
@@ -579,10 +295,8 @@ static int split_file3(core_t * ps_core)
 
 	/* Construct file name */
 	unmap_and_close(ps_core);
-
 	return(0);
 }
-
 
 
 static int sprintf_original(char * pc_first, char * pc_original)
@@ -601,8 +315,6 @@ static int sprintf_original(char * pc_first, char * pc_original)
 	*pc_point  = '\0';
 	return(0);
 }
-
-
 
 
 static int increase_name_num(char * pc_current)
@@ -656,23 +368,10 @@ static int sprintf_next(char * pc_current, char * pc_next)
 
 	i_seq = atoi(pc_rindex + 1);
 
-
-	if ( 2 == i_num_len )
-	{
-		sprintf(ac_num, "%.2d", i_seq+1 );
-	}
-	else if ( 3 == i_num_len )
-	{
-		sprintf(ac_num, "%.3d", i_seq+1 );
-	}
-	else if ( 4 == i_num_len )
-	{
-		sprintf(ac_num, "%.4d", i_seq+1 );
-	}
-	else if ( 5 == i_num_len )
-	{
-		sprintf(ac_num, "%.5d", i_seq+1 );
-	}
+	if          ( 2 == i_num_len ) sprintf(ac_num, "%.2d", i_seq+1 );
+	else if  ( 3 == i_num_len ) sprintf(ac_num, "%.3d", i_seq+1 );
+	else if  ( 4 == i_num_len ) sprintf(ac_num, "%.4d", i_seq+1 );
+	else if ( 5 == i_num_len ) 	sprintf(ac_num, "%.5d", i_seq+1 );
 	else
 	{
 		printf("Error: sufix too long\n");
@@ -680,7 +379,7 @@ static int sprintf_next(char * pc_current, char * pc_next)
 		return(-1);
 	}
 
-	memcpy(pc_next + (pc_rindex - pc_current), ac_num, i_num_len);
+    memcpy(pc_next + (pc_rindex - pc_current), ac_num, i_num_len);
 	return(0);
 }
 #endif
@@ -697,7 +396,8 @@ static int join_files(char * pc_first, off64_t i_buf_size)
 	off64_t i_written       = 0;
 	off64_t i_read          = 0;
 	E();
-	pc_name_dst  = calloc(1, FILENAME_MAX);
+
+    pc_name_dst  = calloc(1, FILENAME_MAX);
 	pc_name_src  = calloc(1, FILENAME_MAX);
 
 	if ( NULL == pc_name_dst || NULL == pc_name_src ) goto join_end;
@@ -798,6 +498,7 @@ static off64_t size_to_digit(char * pc_size)
 	return(i_size);
 }
 
+
 static core_t * parse_args(int i_arg, char ** ppc_arg)
 {
 	int i;
@@ -845,7 +546,6 @@ static core_t * parse_args(int i_arg, char ** ppc_arg)
 		/* -b 1024M 512M 1G -r 			-r means "repeat" : it will be chunked to these sizes again and again: 1024M 512M 1G 1024M 512M 1G ...  */
 		if ( ! strcmp(ppc_arg[i], "-b") )
 		{
-			printf("Going to parse sizes\n");
 			i++;
 			/* Begin parsing until next -something :) */
 			while ( ppc_arg[i] && ppc_arg[i][0] != '-' )
@@ -856,11 +556,7 @@ static core_t * parse_args(int i_arg, char ** ppc_arg)
 			}
 
 			if ( ppc_arg[i] && ! strcmp(ppc_arg[i++], "-r") )
-			{
 				ps_score->c_sizes_repeat = SIZES_RR;
-				printf("SET: SIZES_RR\n");
-			}
-
 			continue;
 		}
 	}
@@ -870,53 +566,17 @@ static core_t * parse_args(int i_arg, char ** ppc_arg)
 
 int main(int i_arg, char ** ppc_arg)
 {
-
-	/*    char * pc_name; 
-		char ac_next[1024]; */
-	off64_t i_size;
-
-	core_t * ps_score;
+    core_t * ps_score;
 	E();
 	ps_score = parse_args(i_arg, ppc_arg);
+	if ( !ps_score ) return(0);
 
-	if ( !ps_score )
-	{
-		printf("NULL\n");
-		return(0);
-	}
-
-	i_size = 0;
-	while ( ps_score->sizes[i_size] >0 )
-	{
-		printf("size: %lld\n", ps_score->sizes[i_size++]);
-	}
-	if ( DO_SPLIT == ps_score->c_what )
+    if ( DO_SPLIT == ps_score->c_what )
 		split_file3(ps_score);
 	if ( DO_JOIN == ps_score->c_what )
 		join_files(ps_score->pc_origin_name, MAX_BUF_SIZE);
 
 	return(0);
-
-#if 0
-	bzero(ac_next, 1024);
-
-	/* Arg 1 = -s / -j (split / join)
-	 * Arg 2 = filename
-	 * Arg 3 = size of chunk */
-
-	i_size = atoll(ppc_arg[3]);
-	pc_name = ppc_arg[2];
-
-	if ( ! strcmp(ppc_arg[1], "-s") )
-		return split_file2(pc_name, i_size);
-
-	if ( ! strcmp(ppc_arg[1], "-j") )
-		return join_files(pc_name, i_size);
-
-	return(-1);
-
-#endif
-
 }
 
 
