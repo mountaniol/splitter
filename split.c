@@ -559,11 +559,20 @@ static core_t * parse_args(int i_arg, char ** ppc_arg)
 }
 
 
+int free_core(core_t * ps_core)
+{
+	if (ps_core->pc_origin_name) free(ps_core->pc_origin_name);
+	free(ps_core);
+	return(0);
+}
+
+
 int main(int i_arg, char ** ppc_arg)
 {
     core_t * ps_score;
 	E();
 	ps_score = parse_args(i_arg, ppc_arg);
+
 	if ( !ps_score ) return(0);
 
     if ( DO_SPLIT == ps_score->c_what )
@@ -571,6 +580,7 @@ int main(int i_arg, char ** ppc_arg)
 	if ( DO_JOIN == ps_score->c_what )
 		join_files(ps_score->pc_origin_name, MAX_BUF_SIZE);
 
+	free_core(ps_score);
 	return(0);
 }
 
