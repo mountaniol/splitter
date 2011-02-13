@@ -174,9 +174,9 @@ static off64_t count_begin_and_size2(core_t * ps_core, int i_seq, off64_t * in_l
 			*in_ll_size = ps_core->sizes[i];
 		}
 
-		/* Use last size for the rest */
-		if (i_seq >= ps_core->i_sizes_size)
-			* in_ll_offset += ( i_seq - i ) * (*in_ll_size);
+		/* Use last size for the rest of chunks. i_sizes_size begins from 1 */
+		if (i_seq >= (ps_core->i_sizes_size - 1))
+			* in_ll_offset += ( i_seq - i + 1) * (*in_ll_size);
 	}
 
 	DD("count_begin_and_size2: in_ll_size: %lld, in_ll_offset: %lld \n", *in_ll_size, *in_ll_offset);
@@ -235,12 +235,7 @@ static off64_t write_chunk3(core_t * ps_core)
 
 		ll_rv_read = pread(ps_core->i_origin_fd, pc_buf,  MIN(ll_buf_size, REMAIN(ll_buf_size, ll_rv_read)), ll_offset_begin + ll_rv_read);
 
-		if ( ll_rv_read < 1 )
-		{
-			perror("Can't read file: ");
-			printf("Read size: %lld\n", ll_rv_read);
-			goto write_chunk_end3;
-		}
+		if ( ll_rv_read < 1 ) goto write_chunk_end3;
 
 		ll_rv_write = write(i_fd_out, pc_buf, ll_rv_read);
 
