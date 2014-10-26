@@ -494,68 +494,67 @@ static off64_t size_to_digit(char * pc_size)
 }
 
 
-static core_t * parse_args(int i_arg, char ** ppc_arg)
+static core_t *parse_args(int i_arg, char **ppc_arg)
 {
 	int i;
-	core_t * ps_score = calloc(1, sizeof(core_t));
+	core_t *ps_score = calloc(1, sizeof(core_t));
 	E();
-	if ( ! ps_score )
-	{
+	if (!ps_score) {
 		printf("Can't allocate score struct\n");
-		return(NULL);
+		return NULL;
 	}
 
-	for ( i = 1; i < i_arg ; )
-	{
-		if ( !strcmp(ppc_arg[i], "-s") )
-		{
+	for (i = 1; i < i_arg ;) {
+		if (!strcmp(ppc_arg[i], "-s")) {
 			ps_score->c_what = DO_SPLIT;
 			ps_score->pc_origin_name = strdup(ppc_arg[i+1]);
-			if ( !ps_score->pc_origin_name )
-			{
+			if (!ps_score->pc_origin_name) {
 				printf("Can't duplicate origin name: split\n");
 				free(ps_score);
-				return(NULL);
+				return NULL;
 			}
-			i+=2;
+			i += 2;
 			continue;
 		}
 
-		if ( !strcmp(ppc_arg[i], "-j") )
-		{
+		if (!strcmp(ppc_arg[i], "-j")) {
 			ps_score->c_what = DO_JOIN;
 			ps_score->pc_origin_name = strdup(ppc_arg[i+1]);
-			if ( !ps_score->pc_origin_name )
-			{
+			if (!ps_score->pc_origin_name) {
 				printf("Can't duplicate origin name: join\n");
 				free(ps_score);
-				return(NULL);
+				return NULL;
 			}
-			i+=2;
+			i += 2;
 			continue;
 		}
 
-		/* -b block size. There may be given chain of values. */
-		/* There i2 2 forms of sizes are allowed: */
-		/* -b 1024M 512M 200M 2G : 		in such form rest of file will be cut to last given size, 2G chunks. */
-		/* -b 1024M 512M 1G -r 			-r means "repeat" : it will be chunked to these sizes again and again: 1024M 512M 1G 1024M 512M 1G ...  */
-		if ( ! strcmp(ppc_arg[i], "-b") )
-		{
+		/* -b block size. There may be given chain of values.
+		 * There i2 2 forms of sizes are allowed:
+		 * -b 1024M 512M 200M 2G:
+		 *	in such form rest of file will be
+		 *	cut to last given size, 2G chunks.
+		 * -b 1024M 512M 1G -r:
+		 *	-r means "repeat" :
+		 *	it will be chunked to these sizes again and again:
+		 *	1024M 512M 1G 1024M 512M 1G ...
+		 */
+		if (!strcmp(ppc_arg[i], "-b")) {
 			i++;
 			/* Begin parsing until next -something :) */
-			while ( ppc_arg[i] && ppc_arg[i][0] != '-' )
-			{
-				ps_score->sizes[ps_score->i_sizes_size] = size_to_digit(ppc_arg[i++]);
-				if ( ps_score->sizes[ps_score->i_sizes_size] > 0 )
+			while (ppc_arg[i] && ppc_arg[i][0] != '-') {
+				ps_score->sizes[ps_score->i_sizes_size]
+					= size_to_digit(ppc_arg[i++]);
+				if (ps_score->sizes[ps_score->i_sizes_size] > 0)
 					ps_score->i_sizes_size++;
 			}
 
-			if ( ppc_arg[i] && ! strcmp(ppc_arg[i++], "-r") )
+			if (ppc_arg[i] && !strcmp(ppc_arg[i++], "-r"))
 				ps_score->c_sizes_repeat = SIZES_RR;
 			continue;
 		}
 	}
-	return(ps_score);
+	return ps_score;
 }
 
 
