@@ -559,11 +559,12 @@ static core_t * parse_args(int i_arg, char ** ppc_arg)
 }
 
 
-int free_core(core_t * ps_core)
+int free_core(core_t *ps_core)
 {
-	if (ps_core->pc_origin_name) free(ps_core->pc_origin_name);
+	if (ps_core->pc_origin_name)
+		free(ps_core->pc_origin_name);
 	free(ps_core);
-	return(0);
+	return 0;
 }
 
 
