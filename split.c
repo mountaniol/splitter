@@ -459,7 +459,7 @@ static int join_files(char * pc_first, off64_t i_buf_size)
 }
 
 
-static off64_t size_to_digit(char * pc_size)
+static off64_t size_to_digit(char *pc_size)
 {
 	int i_strlen;
 	off64_t i_size_multi = 1;
@@ -469,28 +469,30 @@ static off64_t size_to_digit(char * pc_size)
 	bzero(ac_str, 256);
 
 	i_strlen = strlen(pc_size);
-	if ( isalpha(pc_size[i_strlen - 1]) )
-	{
-		if ( pc_size[i_strlen - 1] == 'B' || pc_size[i_strlen - 1] == 'b' )
+	if (isalpha(pc_size[i_strlen - 1])) {
+		if (pc_size[i_strlen - 1] == 'B' ||
+			pc_size[i_strlen - 1] == 'b')
 			i_size_multi = (1);
-		else if ( pc_size[i_strlen - 1] == 'K' || pc_size[i_strlen - 1] == 'k' )
+		else if (pc_size[i_strlen - 1] == 'K' ||
+				pc_size[i_strlen - 1] == 'k')
 			i_size_multi = (1<<10);
-		else if ( pc_size[i_strlen - 1] == 'M' || pc_size[i_strlen - 1] == 'm' )
+		else if (pc_size[i_strlen - 1] == 'M' ||
+				pc_size[i_strlen - 1] == 'm')
 			i_size_multi = (1<<20);
-		else if ( pc_size[i_strlen - 1] == 'G' || pc_size[i_strlen - 1] == 'g' )
+		else if (pc_size[i_strlen - 1] == 'G' ||
+				pc_size[i_strlen - 1] == 'g')
 			i_size_multi = (1<<30);
-		else
-		{
+		else {
 			printf("Unknown size: %c\n", pc_size[i_strlen - 1]);
-			return(0);
+			return 0;
 
 		}
 	}
 
-	memcpy(ac_str, pc_size, i_strlen -1 );
+	memcpy(ac_str, pc_size, i_strlen-1);
 	ac_str[i_strlen - 1] = '\0';
 	i_size = atoll(ac_str) * i_size_multi;
-	return(i_size);
+	return i_size;
 }
 
 
