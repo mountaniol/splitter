@@ -380,82 +380,82 @@ static int sprintf_next(char * pc_current, char * pc_next)
 #endif
 
 
-static int join_files(char * pc_first, off64_t i_buf_size)
+static int join_files(char *pc_first, off64_t i_buf_size)
 {
 	off64_t i_fd_in         = -1;
 	off64_t i_fd_out        = -1;
-	char * pc_buf           = NULL;
-	char * pc_name_dst      = NULL;
-	char * pc_name_src      = NULL;
+	char *pc_buf           = NULL;
+	char *pc_name_dst      = NULL;
+	char *pc_name_src      = NULL;
 	int i_rv                = -1;
 	off64_t i_written       = 0;
 	off64_t i_read          = 0;
 	E();
 
-    pc_name_dst  = calloc(1, FILENAME_MAX);
+	pc_name_dst  = calloc(1, FILENAME_MAX);
 	pc_name_src  = calloc(1, FILENAME_MAX);
 
-	if ( NULL == pc_name_dst || NULL == pc_name_src ) goto join_end;
+	if (NULL == pc_name_dst || NULL == pc_name_src)
+		goto join_end;
 
 	strcpy(pc_name_src, pc_first);
 	sprintf_original(pc_first, pc_name_dst);
 
 	i_fd_out = open(pc_name_dst, O_LARGEFILE | O_WRONLY | O_CREAT, 0666);
 
-	if ( i_fd_out < 0 )
-	{
+	if (i_fd_out < 0) {
 		printf("Can't open output file\n");
 		goto join_end;
 	}
 
 	pc_buf = allocate_buf(i_buf_size, &i_buf_size);
 
-	if ( !pc_buf )
-	{
+	if (!pc_buf) {
 		unlink(pc_name_dst);
 		goto join_end;
 	}
 
 	/* Open a part file, write it into the deastination file */
 
-	do
-	{
+	do {
 		i_fd_in = open(pc_name_src, O_LARGEFILE | O_RDONLY, 0666);
-		if ( i_fd_in < 0 )
+		if (i_fd_in < 0)
 			goto join_end;
 
 		printf("Processing: %s -> %s\n", pc_name_src, pc_name_dst);
 
-		do
-		{
+		do {
 
 			i_written = 0;
 			i_read = read(i_fd_in, pc_buf, i_buf_size);
+			if (i_read > 0)
+				i_written = write(i_fd_out, pc_buf, i_read);
 
-			if ( i_read > 0 ) i_written = write(i_fd_out, pc_buf, i_read);
-
-			if ( i_read != i_written )
-			{
-				printf("Writing error to file: %s read %lld, write %lld \n", pc_name_src, i_read, i_written);
+			if (i_read != i_written) {
+				printf("Writing error to file: %s read %lld, write %lld\n",
+						pc_name_src, i_read, i_written);
 				perror("Error:");
 				goto join_end;
 			}
 
-		}while ( i_read > 0 );
+		} while (i_read > 0);
 
 		close(i_fd_in);
 
-	} while ( 0 == increase_name_num(pc_name_src) );
+	} while (0 == increase_name_num(pc_name_src));
 
 	/* All right, set return value to 0 */
 	i_rv = 0;
 
-	join_end:
-	if ( pc_name_src ) free(pc_name_src);
-	if ( pc_name_dst ) free(pc_name_dst);
+join_end:
+	if (pc_name_src)
+		free(pc_name_src);
+	if (pc_name_dst)
+		free(pc_name_dst);
 	close(i_fd_out);
-	if ( pc_buf ) free(pc_buf);
-	return(i_rv);
+	if (pc_buf)
+		free(pc_buf);
+	return i_rv;
 }
 
 
