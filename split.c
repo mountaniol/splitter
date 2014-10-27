@@ -311,74 +311,41 @@ static int sprintf_original(char * pc_first, char * pc_original)
 	return(0);
 }
 
-
-static int increase_name_num(char * pc_current)
+static off_t increase_name_num(char *pc_current, off_t len)
 {
 	int i_seq;
+	int i_rest;
 	int i_suffix_len = 0;
-	char * pc_rindex;
-	E();    
+	char *pc_rindex;
+	E();
 	pc_rindex = rindex(pc_current, '.') + 1;
-	if ( !pc_rindex )  return(-1);
+	if (!pc_rindex)
+		return -EINVAL;
+
 	i_suffix_len = strlen(pc_rindex);
 	i_seq = atoi(pc_rindex + 1);
+	i_rest = len - (len - (pc_rindex - pc_current));
 
-	switch ( i_suffix_len )
-	{
+	if (i_rest < 1)
+		return -EINVAL;
+
+	switch (i_suffix_len) {
 	case 1:
-		sprintf( pc_rindex, "%.1d", i_seq + 1 );
-		break;
+		return snprintf(pc_rindex, "%.1d", i_seq + 1, i_rest);
 	case 2:
-		sprintf( pc_rindex, "%.2d", i_seq + 1 );
-		break;
+		return snprintf(pc_rindex, "%.2d", i_seq + 1, i_rest);
 	case 3:
-		sprintf( pc_rindex, "%.3d", i_seq + 1 );
-		break;
+		return snprintf(pc_rindex, "%.3d", i_seq + 1, i_rest);
 	case 4:
-		sprintf( pc_rindex, "%.4d", i_seq + 1 );
-		break;
+		return snprintf(pc_rindex, "%.4d", i_seq + 1, i_rest);
 	case 5:
-		sprintf( pc_rindex, "%.5d", i_seq + 1 );
-		break;
+		return snprintf(pc_rindex, "%.5d", i_seq + 1, i_rest);
 	default:
-		printf("Error: sufix too long\n");
-		return(-1);
+		printf("Error: sufix is too long\n");
+		return -EINVAL;
 	}
-	return(0);
+	return -EINVAL;
 }
-
-#if 0
-static int sprintf_next(char * pc_current, char * pc_next)
-{
-	int i_seq;
-	int i_num_len;
-	char * pc_rindex;
-	char ac_num[6];
-	E();    
-	pc_rindex = rindex(pc_current, '.') + 1;
-
-	i_num_len = strlen(pc_rindex);
-
-	strncpy(pc_next, pc_current, (pc_rindex - pc_current) );
-
-	i_seq = atoi(pc_rindex + 1);
-
-	if          ( 2 == i_num_len ) sprintf(ac_num, "%.2d", i_seq+1 );
-	else if  ( 3 == i_num_len ) sprintf(ac_num, "%.3d", i_seq+1 );
-	else if  ( 4 == i_num_len ) sprintf(ac_num, "%.4d", i_seq+1 );
-	else if ( 5 == i_num_len ) 	sprintf(ac_num, "%.5d", i_seq+1 );
-	else
-	{
-		printf("Error: sufix too long\n");
-		bzero(pc_next, strlen(pc_current));
-		return(-1);
-	}
-
-    memcpy(pc_next + (pc_rindex - pc_current), ac_num, i_num_len);
-	return(0);
-}
-#endif
-
 
 static int join_files(char *pc_first, off64_t i_buf_size)
 {
@@ -398,7 +365,7 @@ static int join_files(char *pc_first, off64_t i_buf_size)
 	if (NULL == pc_name_dst || NULL == pc_name_src)
 		goto join_end;
 
-	strcpy(pc_name_src, pc_first);
+	strncpy(pc_name_src, pc_first, FILENAME_MAX-1);
 	sprintf_original(pc_first, pc_name_dst);
 
 	i_fd_out = open(pc_name_dst, O_LARGEFILE | O_WRONLY | O_CREAT, 0666);
@@ -442,7 +409,7 @@ static int join_files(char *pc_first, off64_t i_buf_size)
 
 		close(i_fd_in);
 
-	} while (0 == increase_name_num(pc_name_src));
+	} while (increase_name_num(pc_name_src, FILENAME_MAX) > 0);
 
 	/* All right, set return value to 0 */
 	i_rv = 0;
