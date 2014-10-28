@@ -132,21 +132,19 @@ static int reversing_unlink3(core_t * ps_core, int i_seq)
 	return(0);
 }
 
-static char * allocate_buf(off64_t i_buf_size, off64_t * pi_allocated)
+static char *allocate_buf(off64_t i_buf_size, off64_t *pi_allocated)
 {
-	char * pc_buf = NULL;
+	char *pc_buf = NULL;
 	E();
-	do
-	{
+	do {
 		pc_buf = malloc(i_buf_size);
-		if ( !pc_buf )
+		if (!pc_buf)
 			i_buf_size /= 2;
-	} while ( !pc_buf && i_buf_size > 1 );
+	} while (!pc_buf && i_buf_size > 1);
 
-	* pi_allocated = i_buf_size;
-	return(pc_buf);
+	*pi_allocated = i_buf_size;
+	return pc_buf;
 }
-
 
 /* i_seq: asked part to count offset + size of this segment. */
 /* in_ll_offset - variable to keep offset of beginnig
