@@ -294,21 +294,20 @@ static int split_file3(core_t * ps_core)
 }
 
 
-static int sprintf_original(char * pc_first, char * pc_original)
+static int sprintf_original(char *pc_first, char *pc_original)
 {
-	char * pc_point;
-	E();    
+	char *pc_point;
+	E();
 	strcpy(pc_original, pc_first);
 	pc_point = rindex(pc_original, '.');
 
-	if ( !pc_point )
-	{
+	if (!pc_point) {
 		printf("Error: can't find point in first part name\n");
-		return(-1);
+		return -EINVAL;
 	}
 
 	*pc_point  = '\0';
-	return(0);
+	return 0;
 }
 
 static off_t increase_name_num(char *pc_current, off_t len)
@@ -347,6 +346,7 @@ static off_t increase_name_num(char *pc_current, off_t len)
 	return -EINVAL;
 }
 
+/* This function joins previously splitted files */
 static int join_files(char *pc_first, off64_t i_buf_size)
 {
 	off64_t i_fd_in         = -1;
