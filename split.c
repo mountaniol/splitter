@@ -80,13 +80,15 @@ static int open_and_map(core_t * ps_core)
 	return(0);
 }
 
-
-static int unmap_and_close(core_t * ps_core)
+static int unmap_and_close(core_t *ps_core)
 {
 	int i_rv = 0;
-	if ( ps_core->pc_origin_map ) i_rv = unmap_file(ps_core->pc_origin_map, ps_core->s_origin_stat.st_size);
-	if ( ps_core->i_origin_fd >= 0 ) i_rv |= close(ps_core->i_origin_fd);
-	return(i_rv);
+	if (ps_core->pc_origin_map)
+		rv = unmap_file(ps_core->pc_origin_map,
+			ps_core->s_origin_stat.st_size);
+	if (ps_core->i_origin_fd >= 0)
+		rv |= close(ps_core->i_origin_fd);
+	return i_rv;
 }
 
 static int construct_out_name(char pc_result_name[], char *pc_name, int i_seq)
