@@ -183,12 +183,12 @@ static off64_t count_begin_and_size2(core_t * ps_core, int i_seq, off64_t * in_l
 	return(0);
 }
 
-static off64_t write_chunk3(core_t * ps_core)
+static off64_t write_chunk3(core_t *ps_core)
 {
 	int i;
 
-	char *  pc_buf;
-	char    ac_out_name[FILENAME_MAX];
+	char	*pc_buf;
+	char	ac_out_name[FILENAME_MAX];
 
 	off64_t ll_offset_begin = 0;
 	off64_t ll_chunk_size = 0;
@@ -202,57 +202,73 @@ static off64_t write_chunk3(core_t * ps_core)
 	E();
 	off64_t ll_buf_size = MAX_BUF_SIZE;
 
-	i = count_begin_and_size2(ps_core, ps_core->i_seq, &ll_offset_begin ,&ll_chunk_size);
-	if ( i ) return(-1);
+	i = count_begin_and_size2(ps_core,
+					ps_core->i_seq,
+					&ll_offset_begin,
+					&ll_chunk_size);
+	if (i)
+		return -EINVAL;
 
-	if ( ps_core->s_origin_stat.st_size <= ll_offset_begin) 
-	{	
-		DD("Remain: %lld\n", (ps_core->s_origin_stat.st_size - ll_offset_begin));
-		return(0);
+	if (ps_core->s_origin_stat.st_size <= ll_offset_begin) {
+		DD("Remain: %lld\n",
+			(ps_core->s_origin_stat.st_size - ll_offset_begin));
+		return 0;
 	}
-	
-	DD("Counted: part %d, size %lld, offset %lld\n", ps_core->i_seq, ll_chunk_size, ll_offset_begin);
+
+	DD("Counted: part %d, size %lld, offset %lld\n",
+		ps_core->i_seq,
+		ll_chunk_size,
+		ll_offset_begin);
 
 	pc_buf = allocate_buf(MIN(MAX_BUF_SIZE, ll_chunk_size), &ll_buf_size);
-	if ( !pc_buf ) return(-1);
+	if (!pc_buf)
+		return -EINVAL;
 
-	construct_out_name(ac_out_name, ps_core->pc_origin_name, ps_core->i_seq);
+	construct_out_name(ac_out_name,
+				ps_core->pc_origin_name,
+				ps_core->i_seq);
 
-	i_fd_out = open(ac_out_name, O_CREAT | O_WRONLY | O_EXCL | O_LARGEFILE, 0666);
+	i_fd_out = open(ac_out_name, O_CREAT
+					| O_WRONLY
+					| O_EXCL
+					| O_LARGEFILE, 0666);
 
-	if ( i_fd_out < 0 )
-	{
+	if (i_fd_out < 0) {
 		perror("Can't open file: ");
 		free(pc_buf);
-		return(-1);
+		return -EINVAL;
 	}
 
 	printf("Writing: %s\n", ac_out_name);
 
-	do
-	{
-		DD("Going to read: %lld\n", MIN(ll_buf_size, (ps_core->s_origin_stat.st_size - ll_offset_begin)));
+	do {
+		DD("Going to read: %lld\n",
+			MIN(ll_buf_size,
+			(ps_core->s_origin_stat.st_size - ll_offset_begin)));
 
-		ll_rv_read = pread(ps_core->i_origin_fd, pc_buf,  MIN(ll_buf_size, REMAIN(ll_buf_size, ll_rv_read)), ll_offset_begin + ll_rv_read);
+		ll_rv_read = pread(ps_core->i_origin_fd, pc_buf,
+				MIN(ll_buf_size,
+				REMAIN(ll_buf_size, ll_rv_read)),
+				ll_offset_begin + ll_rv_read);
 
-		if ( ll_rv_read < 1 ) goto write_chunk_end3;
+		if (ll_rv_read < 1)
+			goto write_chunk_end3;
 
 		ll_rv_write = write(i_fd_out, pc_buf, ll_rv_read);
 
-		if ( ll_rv_read != ll_rv_write )
-		{
+		if (ll_rv_read != ll_rv_write) {
 			perror("Can't write file: ");
 			goto write_chunk_end3;
 		}
 
 		ll_written += ll_rv_write;
 
-	} while ( ll_rv_read > 0 );
+	} while (ll_rv_read > 0);
 
-	write_chunk_end3:
+write_chunk_end3:
 	close(i_fd_out);
 	free(pc_buf);
-	return(ll_written);
+	return ll_written;
 }
 
 
