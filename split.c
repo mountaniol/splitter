@@ -89,11 +89,10 @@ static int unmap_and_close(core_t * ps_core)
 	return(i_rv);
 }
 
-
-static int construct_out_name(char pc_result_name[], char * pc_name, int i_seq)
+static int construct_out_name(char pc_result_name[], char *pc_name, int i_seq)
 {
 	E();
-	return(sprintf(pc_result_name, "%s.%.3d", pc_name, i_seq));
+	return sprintf(pc_result_name, "%s.%.3d", pc_name, i_seq);
 }
 
 static int reversing_unlink(char *pc_name, int i_seq)
