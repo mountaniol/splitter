@@ -96,22 +96,20 @@ static int construct_out_name(char pc_result_name[], char * pc_name, int i_seq)
 	return(sprintf(pc_result_name, "%s.%.3d", pc_name, i_seq));
 }
 
-
-static int reversing_unlink(char * pc_name, int i_seq)
+static int reversing_unlink(char *pc_name, int i_seq)
 {
-	char * pc_filename;
+	char *pc_filename;
 	E();
 	pc_filename = malloc(FILENAME_MAX * sizeof(char));
-	if ( !pc_filename )
-		return(errno);
+	if (!pc_filename)
+		return errno;
 
-	while ( i_seq >=0 )
-	{
+	while (i_seq >= 0) {
 		construct_out_name(pc_filename, pc_name, i_seq--);
 		DD("Reverse: removing file %s\n", pc_filename);
 		unlink(pc_filename);
 	}
-	return(0);
+	return 0;
 }
 
 static int reversing_unlink3(core_t *ps_core, int i_seq)
