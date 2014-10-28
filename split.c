@@ -256,7 +256,7 @@ static off64_t write_chunk3(core_t * ps_core)
 }
 
 
-static int split_file3(core_t * ps_core)
+static int split_file3(core_t *ps_core)
 {
 	int         i_rv;
 	off64_t     ll_offset = 0;
@@ -266,31 +266,31 @@ static int split_file3(core_t * ps_core)
 	E();
 
 	i_rv = open_and_map(ps_core);
-	if ( i_rv )	return(i_rv);
+	if (i_rv)
+		return i_rv;
 
 	ll_file_size = ps_core->s_origin_stat.st_size;
 
-	do
-	{
+	do {
 		ll_written = write_chunk3(ps_core);
 		ps_core->i_seq++;
-		if ( ll_written < 0 ) reversing_unlink3(ps_core, ps_core->i_seq);
-
+		if (ll_written < 0)
+			reversing_unlink3(ps_core, ps_core->i_seq);
 		ll_offset += ll_written;
 
-	} while ( ll_written > 0 );
+	} while (ll_written > 0);
 
-	if ( ll_offset < ll_file_size )
-	{
-		printf("Error: common output less then source file : %lld < %lld \n", ll_offset, ll_file_size);
-		reversing_unlink(ps_core->pc_origin_name, ps_core->i_seq - 1 );
+	if (ll_offset < ll_file_size) {
+		printf("Error: common output less then source file : %lld < %lld\n",
+			ll_offset, ll_file_size);
+		reversing_unlink(ps_core->pc_origin_name, ps_core->i_seq - 1);
 		unmap_and_close(ps_core);
-		return(-1);
+		return -EINVAL;
 	}
 
 	/* Construct file name */
 	unmap_and_close(ps_core);
-	return(0);
+	return 0;
 }
 
 
