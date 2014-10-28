@@ -302,7 +302,7 @@ static int split_file3(core_t *ps_core)
 	} while (ll_written > 0);
 
 	if (ll_offset < ll_file_size) {
-		printf("Error: common output less then source file : %lld < %lld\n",
+		printf("Error: common output less then source file : %ld < %ld\n",
 			ll_offset, ll_file_size);
 		reversing_unlink(ps_core->pc_origin_name, ps_core->i_seq - 1);
 		unmap_and_close(ps_core);
@@ -351,15 +351,15 @@ static off_t increase_name_num(char *pc_current, off_t len)
 
 	switch (i_suffix_len) {
 	case 1:
-		return snprintf(pc_rindex, "%.1d", i_seq + 1, i_rest);
+		return snprintf(pc_rindex, i_rest, "%.1d", i_seq + 1);
 	case 2:
-		return snprintf(pc_rindex, "%.2d", i_seq + 1, i_rest);
+		return snprintf(pc_rindex, i_rest, "%.2d", i_seq + 1);
 	case 3:
-		return snprintf(pc_rindex, "%.3d", i_seq + 1, i_rest);
+		return snprintf(pc_rindex, i_rest, "%.3d", i_seq + 1);
 	case 4:
-		return snprintf(pc_rindex, "%.4d", i_seq + 1, i_rest);
+		return snprintf(pc_rindex, i_rest, "%.4d", i_seq + 1);
 	case 5:
-		return snprintf(pc_rindex, "%.5d", i_seq + 1, i_rest);
+		return snprintf(pc_rindex, i_rest, "%.5d", i_seq + 1);
 	default:
 		printf("Error: sufix is too long\n");
 		return -EINVAL;
@@ -420,7 +420,7 @@ static int join_files(char *pc_first, off64_t i_buf_size)
 				i_written = write(i_fd_out, pc_buf, i_read);
 
 			if (i_read != i_written) {
-				printf("Writing error to file: %s read %lld, write %lld\n",
+				printf("Writing error to file: %s read %ld, write %ld\n",
 						pc_name_src, i_read, i_written);
 				perror("Error:");
 				goto join_end;
