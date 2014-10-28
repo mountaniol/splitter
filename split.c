@@ -46,48 +46,49 @@ static char * map_file(int i_fd, size_t i_size)
 }
 
 
-static int open_and_map(core_t * ps_core)
+static int open_and_map(core_t *ps_core)
 {
 	int i_rv;
 
 	E();
-	ps_core->i_origin_fd = open(ps_core->pc_origin_name, O_RDONLY | O_LARGEFILE);
+	ps_core->i_origin_fd =
+		open(ps_core->pc_origin_name, O_RDONLY | O_LARGEFILE);
 
-	if ( ps_core->i_origin_fd < 0 )
-	{
-		perror("Can't open origin file: "); 
-		return(errno);
+	if (ps_core->i_origin_fd < 0) {
+		perror("Can't open origin file: ");
+		return errno;
 	}
 
-	if ( fstat(ps_core->i_origin_fd, &ps_core->s_origin_stat) || ps_core->s_origin_stat.st_size <= 0 )
-	{
+	if (fstat(ps_core->i_origin_fd,
+		&ps_core->s_origin_stat)
+		|| ps_core->s_origin_stat.st_size <= 0) {
 		i_rv = errno;
-		perror("Can't origin stat file: "); 
+		perror("Can't origin stat file: ");
 		close(ps_core->i_origin_fd);
 		ps_core->i_origin_fd = -1;
-		return(i_rv);
+		return i_rv;
 	}
 
-	ps_core->pc_origin_map = (char *) map_file(ps_core->i_origin_fd, (int) ps_core->s_origin_stat.st_size);
+	ps_core->pc_origin_map = (char *) map_file(ps_core->i_origin_fd,
+					(int) ps_core->s_origin_stat.st_size);
 
-	if ( !ps_core->pc_origin_map )
-	{
+	if (!ps_core->pc_origin_map) {
 		i_rv = errno;
-		perror("Can't mmap file: ");    
+		perror("Can't mmap file: ");
 		close(ps_core->i_origin_fd);
-		return(i_rv);
+		return i_rv;
 	}
-	return(0);
+	return 0;
 }
 
 static int unmap_and_close(core_t *ps_core)
 {
 	int i_rv = 0;
 	if (ps_core->pc_origin_map)
-		rv = unmap_file(ps_core->pc_origin_map,
+		i_rv = unmap_file(ps_core->pc_origin_map,
 			ps_core->s_origin_stat.st_size);
 	if (ps_core->i_origin_fd >= 0)
-		rv |= close(ps_core->i_origin_fd);
+		i_rv |= close(ps_core->i_origin_fd);
 	return i_rv;
 }
 
