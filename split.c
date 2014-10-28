@@ -114,22 +114,22 @@ static int reversing_unlink(char * pc_name, int i_seq)
 	return(0);
 }
 
-
-static int reversing_unlink3(core_t * ps_core, int i_seq)
+static int reversing_unlink3(core_t *ps_core, int i_seq)
 {
-	char * pc_filename;
+	char *pc_filename;
 	E();
 	pc_filename = malloc(FILENAME_MAX * sizeof(char));
-	if ( !pc_filename )
-		return(errno);
+	if (!pc_filename)
+		return errno;
 
-	while ( i_seq >=0 )
-	{
-		construct_out_name(pc_filename, ps_core->pc_origin_name, i_seq--);
+	while (i_seq >= 0) {
+		construct_out_name(pc_filename,
+			ps_core->pc_origin_name,
+			i_seq--);
 		DD("Reverse: removing file %s\n", pc_filename);
 		unlink(pc_filename);
 	}
-	return(0);
+	return 0;
 }
 
 static char *allocate_buf(off64_t i_buf_size, off64_t *pi_allocated)
