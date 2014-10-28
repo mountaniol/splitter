@@ -31,12 +31,11 @@
 /* Count offset where to read from: number od part (seq), size of every part (size) and already read size (ofset)*/
 #define READ_OFFSET(seq, size, offset) ((seq * size) + offset)
 
-
-static int unmap_file(char * pc_map, size_t i_size)
+static int unmap_file(char *pc_map, size_t i_size)
 {
 	E();
-	return( munmap(pc_map, i_size) );
-}   
+	return munmap(pc_map, i_size);
+}
 
 static char *map_file(int i_fd, size_t i_size)
 {
