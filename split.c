@@ -16,19 +16,26 @@
 
 #include "split.h"
 
-// #define E() do { printf("E: %s +%d\n", __FUNCTION__, __LINE__) ; } while(0)
+/*
+#define E() do { printf("E: %s +%d\n", __FUNCTION__, __LINE__) ; } while(0)
+*/
 
-#define DD(x...) do {} while(0)
-#define E(x...) do {} while(0)
+#define DD(x...) do {} while (0)
+#define E(x...) do {} while (0)
 
 /* Maximal buffer size */
 #define MAX_BUF_SIZE (1024 * 1024)
 
 /* Good looking way to calculate remain size */
 #define REMAIN(size, written) (size - written)
-#define MIN(a,b) ( (a<b) ? a : b )
+#define MIN(a, b) ((a < b) ? a : b)
 
-/* Count offset where to read from: number od part (seq), size of every part (size) and already read size (ofset)*/
+/*
+ * Count offset where to read from:
+ * number od part (seq),
+ * size of every part (size)
+ * and already read size (ofset)
+ */
 #define READ_OFFSET(seq, size, offset) ((seq * size) + offset)
 
 static int unmap_file(char *pc_map, size_t i_size)
