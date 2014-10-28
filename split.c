@@ -38,13 +38,11 @@ static int unmap_file(char * pc_map, size_t i_size)
 	return( munmap(pc_map, i_size) );
 }   
 
-
-static char * map_file(int i_fd, size_t i_size)
+static char *map_file(int i_fd, size_t i_size)
 {
 	E();
 	return mmap(NULL, i_size, PROT_READ, MAP_SHARED, i_fd, 0);
 }
-
 
 static int open_and_map(core_t *ps_core)
 {
