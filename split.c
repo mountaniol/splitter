@@ -152,35 +152,38 @@ static char * allocate_buf(off64_t i_buf_size, off64_t * pi_allocated)
 /* in_ll_offset - variable to keep offset of beginnig
    in_ll_size - variable to keep size of the segment  */
 
-static off64_t count_begin_and_size2(core_t * ps_core, int i_seq, off64_t * in_ll_offset, off64_t * in_ll_size)
+static off64_t count_begin_and_size2(core_t *ps_core,
+					int i_seq,
+					off64_t *in_ll_offset,
+					off64_t *in_ll_size)
 {
 	int i;
-	* in_ll_offset = *in_ll_size = 0;
-	DD("count_begin_and_size2: i_seq : %i,ps_core->i_sizes_size: %i\n", i_seq, ps_core->i_sizes_size);
+	*in_ll_offset = *in_ll_size = 0;
+	DD("count_begin_and_size2: i_seq : %i,ps_core->i_sizes_size: %i\n",
+		i_seq, ps_core->i_sizes_size);
 
-	if ( SIZES_RR == ps_core->c_sizes_repeat )
-	{
-		for ( i = 0; i <= i_seq ; i++ )
-		{
-			if (i > 0 ) *in_ll_offset += *in_ll_size;
-			*in_ll_size = ps_core->sizes[ (i % ps_core->i_sizes_size) ];
+	if (SIZES_RR == ps_core->c_sizes_repeat) {
+		for (i = 0; i <= i_seq ; i++) {
+			if (i > 0)
+				*in_ll_offset += *in_ll_size;
+			*in_ll_size =
+				ps_core->sizes[(i % ps_core->i_sizes_size)];
 		}
-	}
-	else
-	{
-		for ( i = 0; i < ps_core->i_sizes_size && i <= i_seq ; i++ )
-		{
-			if (i > 0 ) *in_ll_offset += *in_ll_size;
+	} else {
+		for (i = 0; i < ps_core->i_sizes_size && i <= i_seq ; i++) {
+			if (i > 0)
+				*in_ll_offset += *in_ll_size;
 			*in_ll_size = ps_core->sizes[i];
 		}
 
-		/* Use last size for the rest of chunks. i_sizes_size begins from 1 */
+		/* Use last size for the rest of chunks.
+		 * i_sizes_size begins from 1 */
 		if (i_seq >= (ps_core->i_sizes_size - 1))
-			* in_ll_offset += ( i_seq - i + 1) * (*in_ll_size);
+			*in_ll_offset += (i_seq - i + 1) * (*in_ll_size);
 	}
-
-	DD("count_begin_and_size2: in_ll_size: %lld, in_ll_offset: %lld \n", *in_ll_size, *in_ll_offset);
-	return(0);
+	DD("count_begin_and_size2: in_ll_size: %lld, in_ll_offset: %lld\n",
+		*in_ll_size, *in_ll_offset);
+	return 0;
 }
 
 static off64_t write_chunk3(core_t *ps_core)
