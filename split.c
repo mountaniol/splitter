@@ -484,17 +484,49 @@ static off64_t size_to_digit(char *pc_size)
 }
 
 
+static void help(void)
+{
+	printf("Usage:\n"
+		"Split: splitter -s origin.file -b size1 [size2 ... sizeN] [-r]\n"
+		"Join:  splitter -j first.chunk.000\n\n"
+		"**Split explanation:**\n"
+		"-s origin.file - this is the file you want to split\n"
+		"-b size1 [size2 ... sizeN] - this is the chunk size split to\n"
+		"-r means 'repeat': if you define 10M 50M -r it will split to multiple chunks:\n"
+		"origin.file.000 = 10M\n"
+		"origin.file.001 = 50M\n"
+		"origin.file.002 = 10M\n"
+		"and so on\n\n"
+		"Size suffixes are M of G for Mb and Gb: 120M 2G\n\n"
+		"**Join explanation:**\n"
+		"no options but -j 'fist.chunk.000'\n"
+		"The resulting file will be named 'first.chunk'\n");
+}
+
 static core_t *parse_args(int i_arg, char **ppc_arg)
 {
 	int i;
-	core_t *ps_score = calloc(1, sizeof(core_t));
+	core_t *ps_score;
 	E();
+
+	if(i_arg < 2) {
+		help();
+		return 0;
+	}
+
+	ps_score = calloc(1, sizeof(core_t));
 	if (!ps_score) {
 		printf("Can't allocate score struct\n");
 		return NULL;
 	}
 
 	for (i = 1; i < i_arg ;) {
+		if (!strcmp(ppc_arg[i], "-h") || !strcmp(ppc_arg[i], "--help")) {
+			help();
+			free(ps_score);
+			return NULL;
+		}
+
 		if (!strcmp(ppc_arg[i], "-s")) {
 			ps_score->c_what = DO_SPLIT;
 			ps_score->pc_origin_name = strdup(ppc_arg[i+1]);
