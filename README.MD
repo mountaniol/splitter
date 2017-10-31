@@ -52,6 +52,6 @@ Example 3
 - /path/to/file.name.(NNN - 1) size 512 Megabytes
 - /path/to/file.name.NNN       size 128 Megabytes
 
-** Contact me**
+**Contact me**
 - Feel free asking questions. Contact me through github:
 - http://github.com/mountaniol
