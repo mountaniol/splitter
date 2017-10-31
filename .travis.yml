@@ -1,0 +1,5 @@
+language: C
+OS: Linux
+install: make get-deps
+compiler: gcc
+
