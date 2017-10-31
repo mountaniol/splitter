@@ -1,5 +1,5 @@
 language: C
 OS: Linux
-install: make get-deps
+script: make
 compiler: gcc
 
